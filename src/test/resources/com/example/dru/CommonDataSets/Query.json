@@ -1,0 +1,12 @@
+[
+  {
+    "queryId": "1",
+    "queryName": "foo-summary",
+    "queryBase": "SELECT * from foo"
+  },
+  {
+    "queryId": "2",
+    "queryName": "bar-summary",
+    "queryBase": "SELECT * from bar"
+  }
+]
