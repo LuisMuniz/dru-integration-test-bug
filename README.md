@@ -1,4 +1,6 @@
 # dru-integration-test-bug
+
+## Issue
 A grails 4.0.6 application that does not roll back data loaded by DRU in integration test
 
 Two identical tests run in an integration test marked @Rollback.
@@ -80,3 +82,17 @@ Condition not satisfied:
 
 ```
 
+## Resolution
+
+This is not an issue due to DRU.
+
+As mentioned in the [grails documentation](https://docs.grails.org/latest/guide/testing.html#functionalTesting), `setup()` runs outside of the transaction boundary managed by `@Rollback`: 
+
+>  Though each test method transaction is rolled back, the setup() method uses a separate transaction that is not rolled back.
+>  Data will persist to the database and will need to be cleaned up manually if setup() sets up data and persists them [...]
+
+## Conclusions, and Bonus issues
+
+* Never set up DB in a `setup()` method, as its effects are additive and then you will have to clean in the `cleanup()` method.
+* Use `withSession()` and not `withNewSession()` as hinted at in the DRU documentation. (Its code also sets up data in `setup()`)
+* You need to call `flush()` on the session in order for the data to be loadable as GORM domains.  
