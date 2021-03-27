@@ -5,11 +5,13 @@ import com.example.Query
 import com.example.Temporality
 import grails.gorm.transactions.Rollback
 import grails.testing.mixin.integration.Integration
+import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 @Rollback
 @Integration
 class DruIntSpec extends Specification {
+    @AutoCleanup
     Dru dru = Dru.create {
         include CommonDataSets.query
         include CommonDataSets.temporality
@@ -27,7 +29,7 @@ class DruIntSpec extends Specification {
 */
 
 
-    def "It loads data with DRU in an integration test1"() {
+    def "It loads data with DRU in an integration test"() {
         given:
         druLoad()
 

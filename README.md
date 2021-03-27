@@ -96,3 +96,61 @@ As mentioned in the [grails documentation](https://docs.grails.org/latest/guide/
 * Never set up DB in a `setup()` method, as its effects are additive and then you will have to clean in the `cleanup()` method.
 * Use `withSession()` and not `withNewSession()` as hinted at in the DRU documentation. (Its code also sets up data in `setup()`)
 * You need to call `flush()` on the session in order for the data to be loadable as GORM domains.  
+
+Working code:
+```groovy
+import com.agorapulse.dru.Dru
+import com.example.Query
+import com.example.Temporality
+import grails.gorm.transactions.Rollback
+import grails.testing.mixin.integration.Integration
+import spock.lang.AutoCleanup
+import spock.lang.Specification
+
+@Rollback
+@Integration
+class DruIntSpec extends Specification {
+    @AutoCleanup
+    Dru dru = Dru.create {
+        include CommonDataSets.query
+        include CommonDataSets.temporality
+    }
+
+    def "It loads data with DRU in an integration test"() {
+        given:
+        druLoad()
+
+        expect:
+        dru.findAllByType(Query).size() == 2
+        dru.findAllByType(Temporality).size() == 2
+
+        and:
+        Query.list().size() == 2
+        Temporality.list().size() == 2
+    }
+
+    def "It loads the same data with DRU in another integration test"() {
+        given:
+        druLoad()
+
+        expect:
+        dru.findAllByType(Query).size() == 2
+        dru.findAllByType(Temporality).size() == 2
+
+        and:
+        Query.list().size() == 2
+        Temporality.list().size() == 2
+    }
+
+    /*
+     * Helpers
+     */
+    private Object druLoad() {
+        Query.withSession { s ->
+            dru.load()
+            //will not work without flushing the session...
+            s.flush()
+        }
+    }
+}
+```
