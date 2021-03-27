@@ -16,30 +16,51 @@ class DruIntSpec extends Specification {
     }
 
 
+/*
+    //setup runs outside of the transaction boundary managed by @Rollback
+    // see https://docs.grails.org/latest/guide/testing.html#functionalTesting
+    // "Though each test method transaction is rolled back, the setup() method uses a separate transaction that is not rolled back.
+    // Data will persist to the database and will need to be cleaned up manually if setup() sets up data and persists them "
     void setup() {
-        Query.withSession {
+        druLoad()
+    }
+*/
+
+
+    def "It loads data with DRU in an integration test1"() {
+        given:
+        druLoad()
+
+        expect:
+        dru.findAllByType(Query).size() == 2
+        dru.findAllByType(Temporality).size() == 2
+
+        and:
+        Query.list().size() == 2
+        Temporality.list().size() == 2
+    }
+
+    def "It loads the same data with DRU in another integration test"() {
+        given:
+        druLoad()
+
+        expect:
+        dru.findAllByType(Query).size() == 2
+        dru.findAllByType(Temporality).size() == 2
+
+        and:
+        Query.list().size() == 2
+        Temporality.list().size() == 2
+    }
+
+    /*
+     * Helpers
+     */
+    private Object druLoad() {
+        Query.withSession { s ->
             dru.load()
-       }
-    }
-
-
-    def "It loads fixtures from json in an integration test1"() {
-        expect:
-        dru.findAllByType(Query).size() ==2
-        dru.findAllByType(Temporality).size() ==2
-
-        and:
-        Query.list().size() ==2
-        Temporality.list().size() ==2
-    }
-
-    def "It loads fixtures from json in an integration test2"() {
-        expect:
-        dru.findAllByType(Query).size() ==2
-        dru.findAllByType(Temporality).size() ==2
-
-        and:
-        Query.list().size() ==2
-        Temporality.list().size() ==2
+            //will not work without flushing the session...
+            s.flush()
+        }
     }
 }
